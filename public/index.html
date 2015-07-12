@@ -1,0 +1,116 @@
+<!DOCTYPE html>  
+<meta charset="utf-8" />  
+<title>WebSocket Test</title> 
+<div id= "msgs">
+</div>
+<script>
+var ws = new WebSocket('ws://localhost:1234', 'echo-protocol');
+
+
+
+ws.addEventListener('message', function(e) {
+	//document.getElementById('msgs').innerHTML += '<br>' + 'msg received from server';
+    var msg = e.data;
+    var data = eval('[' + e.data + ']');
+    console.log(data);
+    drawCanvas(data);
+//    nums = msg.split(',');
+});
+
+function drawCanvas( arr ) {
+	var c = document.getElementById("myCanvas");
+	var ctxt = c.getContext("2d");
+	var imgData = ctxt.createImageData(512,512);
+	var data = imgData.data;
+	if (arr.length == 0) {
+				document.getElementById('msgs').innerHTML += '<br>' + 'no received img';
+
+	}
+	else {
+
+			for (var i = 0; i < arr.length; i++) {
+				data[i*4]  = arr[i];
+				data[i*4+1] = arr[i];
+				data[i*4+2] = arr[i];
+				data[i*4+3] = 255;
+			}
+		ctxt.putImageData(imgData, 0,0);
+	}
+}
+
+
+function sendMessage() {
+		var data = [document.getElementById('a').value,
+					document.getElementById('b').value,
+					document.getElementById('c').value];
+
+		if (document.getElementById('w2bButton').checked) {
+			data.push('w2b');
+		}
+		else data.push('b2w');
+        ws.send(data);
+
+}
+
+
+function discon() {
+    ws.send('Conclusion');
+    ws.close();
+}
+</script> 
+
+<!--Websocket input/output variables-->
+<h2>WebSocket Test</h2>  
+<div id="output"></div>
+<body>
+
+ <INPUT type="button" value="Disconnect" name="button1" onClick="discon()">  
+
+<form action="demo_form.asp" id="numform" oninput="last_sent_time = new Date().getTime(); websocket.send(a.value);">
+<br><br>
+<form>
+<input type="radio" id="w2bButton" name="Gradient" value="w2b" checked> White to Black
+<br>
+<input type="radio" id="b2wButton" name="Gradient" value="b2w"> Black to White
+</form>
+
+<h1>a</h1>
+	<input type="range" id="a" name="a" value="0" onchange="sendMessage()">255
+	<script> document.getElementById('a').max = '255'; </script>
+<br><br>
+<h2>b</h2>
+	<input type="range" id="b" name="b" value="0" onchange="sendMessage()">255
+		<script> document.getElementById('b').max = '255'; </script>
+
+<br><br>
+<h3>c</h3>
+	<input type="range" id="c" name="c" value="0" onchange="sendMessage()">100
+
+</form>
+
+<p>Value is:</p>
+ <INPUT type="button" value="Send Value" name="button2" onClick="sendMessage()"> 
+
+<label id='numbervalue'></label>
+<output form="numform" name="x" for="a"></output>
+<canvas id="myCanvas" width="512", height="512" style="border:1px solid #d3d3d3;"></canvas>
+
+
+</body>
+
+
+<head>
+  <script type="text/javascript" src="canvasjs.min.js"></script>
+</head>
+<body>
+  <div id="chartContainer" style="height: 300px; width:100%;"></div>
+</body>
+
+<!--Chart Script-->
+<script type="text/javascript">
+
+</script>
+
+
+
+
