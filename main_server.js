@@ -5,7 +5,6 @@ var http = require('http');
 var server = http.createServer(app);
 var net = require('net');
 var netServer = net.createServer();
-netServer.maxConnections = 2;
 
 var WebSocketServer = require('websocket').server;
 var HOST = '127.0.0.1';
@@ -26,6 +25,9 @@ netServer.listen(1111,HOST, function(){
 
 var sockets = [];
 
+//Function turns on tcp server connection to python code
+//when it receives a message from python code, it writes to the socket given value
+//still super glitchy, writing correct value to socket but socket end not receiving
 function connectPython(value) {
 	console.log('--------value is ' + value);
 	netServer.on('connection', function(socket) {
@@ -59,7 +61,8 @@ wsServer = new WebSocketServer({
 	httpServer: server
 });
 
-	//create gradient array, currently a global var?
+	//create gradient array, currently a global var
+	//used to send images to server
 	var img_arr = [];
 
 	var fullval = 255;
@@ -94,23 +97,27 @@ wsServer.on('request', function(r){
 	clients[id] = connection;
 
 	clients[id].sendUTF(img_arr);
-	//sends client img arr upon loading page
+	//server sends client img arr upon loading page
 
 	console.log((new Date()) + ' Connection accepted ' + id);
 	//console.log(img_arr);
 
-	//when server receives message from client
+	//when server receives message from client (ie when someone changes scale val)
 	connection.on('message', function(message){
 		var msg = message.utf8Data;
 		console.log("scale numbers are: " + msg + "------------------------------------------------");
 
 		var return_arr = msg.split(',');
-
+		//change array according to first value in client message
 		var updated_array = changeCanvas(+return_arr[0]);
+
+		//updates clients, sends new changed img array
 		for (var i in clients) {
 			//clients[i].sendUTF('sum is: ' + sum);
 			clients[i].sendUTF(updated_array);
 		}
+
+		//receiving this message, it connects to the tcp server and passes the first val of the message
 		connectPython(return_arr[0]);
 	});
 
